@@ -1,0 +1,29 @@
+{
+    "name": "denha/cache",
+    "description": "The denha Framework.",
+    "keywords": ["cache","psr-16"],
+    "license": "MIT",
+    "homepage": "https://denha.cn",
+    "support": {
+        "issues": "https://github.com/denhaphp/cache/issues",
+        "source": "https://github.com/denhaphp/cache"
+    },
+    "authors": [
+        {
+            "name": "siyue",
+            "email": "350375092@qq.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2.0",
+        "psr/simple-cache": "^1.0"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "files": [],
+        "psr-4": {
+            "denha\\cache\\": "src"
+        }
+    }
+}
