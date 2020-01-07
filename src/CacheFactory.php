@@ -7,8 +7,6 @@ declare (strict_types = 1);
 
 namespace denha\cache;
 
-use denha\cache\drivers\File;
-
 class CacheFactory
 {
 
@@ -17,11 +15,12 @@ class CacheFactory
     public static function message($config = [])
     {
 
-        $drivers = $config['type'] ?: 'File';
-        $id      = md5(json_encode($config));
+        $type = $config['type'] ?: 'File';
+        $id   = md5(json_encode($config));
 
         if (!isset(self::$instance[$id])) {
-            self::$instance[$id] = new $drivers($config);
+            $driversClass        = 'denha\cache\drivers\\' . $type;
+            self::$instance[$id] = new $driversClass($config);
         }
 
         return self::$instance[$id];

@@ -1,20 +1,20 @@
 <?php
+declare (strict_types = 1);
 //------------------------
 //· 文件缓存类
 //-------------------------
 namespace denha\cache\drivers;
 
 use Psr\SimpleCache\CacheInterface;
+use \Exception;
 
 class File implements CacheInterface
 {
-    public $config = [
+    private $config = [
         'ext'  => '.txt',
         'ttl'  => 3600,
         'path' => DATA_CACHE_PATH,
     ];
-
-    public static $instance = [];
 
     public function __construct($config = [])
     {
@@ -22,41 +22,77 @@ class File implements CacheInterface
         $this->connect();
     }
 
+    public function connect()
+    {
+        if (!isset($this->config['path'])) {
+            throw new Exception("Cache Config.Path not find");
+        }
+
+        is_dir($this->config['path']) ?: mkdir($this->config['path'], 0755, true);
+    }
+
+    /**
+     * 覆盖配置信息
+     * @date   2020-01-07T11:13:12+0800
+     * @author ChenMingjiang
+     * @param  array                    $config [description]
+     */
+    public function setConfig($config = [])
+    {
+        if ($config) {
+            $this->config = array_merge($this->config, $config);
+        }
+
+        return $this;
+    }
+
     public static function getConfigOptions()
     {
         return ['ext', 'ttl', 'path'];
     }
 
-    public function get(string $key, $defaul = '')
+    public function get($key, $default = null)
     {
         $path = $this->config['path'] . md5($key) . $this->config['ext'];
+
         if (is_file($path)) {
             $data              = file_get_contents($path);
             list($value, $ttl) = !empty($data) ? explode(':::', $data) : [$default, 0];
+
             // 过期删除
-            if ($ttl && $ttl > TIME) {
+            if ($ttl && $ttl < TIME) {
                 $this->delete($key);
-                $value = $defaul;
+                $value = $default;
             } else {
                 $value = json_decode($value, true);
             }
         } else {
-            $value = $defaul;
+            $value = $default;
         }
 
         return $value;
     }
 
-    public function set(string $key, $value, int $ttl = 0)
+    public function set($key, $value, $ttl = null)
     {
-        $path    = $this->config['path'] . md5($key) . $this->config['ext'];
-        $content = json_encode($value) . ':::' . ($this->config['ttl'] && $this->config['ttl'] > 0 ? (TIME + $ttl) : 0);
+
+        if ($ttl > 0) {
+            $ttl = time() + $ttl;
+        } elseif ($ttl <= 0) {
+            $ttl = 0;
+        } else {
+            $ttl = $this->config['ttl'] > 0 ? time() + $this->config['ttl'] : 0;
+        }
+
+        $path = $this->config['path'] . md5($key) . $this->config['ext'];
+
+        $content = json_encode($value) . ':::' . $ttl;
         file_put_contents($path, $content);
 
         return true;
     }
 
-    public function delete(string $key)
+    public function delete($key)
     {
         $path = $this->config['path'] . md5($key) . $this->config['ext'];
 
@@ -69,12 +105,14 @@ class File implements CacheInterface
 
     public function clear()
     {
+
         if (is_dir($this->config['path'])) {
             $lists = scandir($this->config['path']);
+
             foreach ($lists as $path) {
                 if ($path != "." && $path != "..") {
-                    if (is_file($path)) {
-                        unlink($path);
+                    if (is_file($this->config['path'] . $path)) {
+                        unlink($this->config['path'] . $path);
                     }
                 }
             }
@@ -83,16 +121,16 @@ class File implements CacheInterface
         return true;
     }
 
-    public function getMultiple(array $keys, $default = '')
+    public function getMultiple($keys, $default = null)
     {
-        foreach ($keys as $key) {
-            $data[] = $this->get($keys, $default);
+        foreach ($keys as $key => $value) {
+            $data[] = $this->get($key, $default);
         }
 
         return $data;
     }
 
-    public function setMultiple(array $values, int $ttl = 0)
+    public function setMultiple($values, $ttl = 0)
     {
         foreach ($values as $key => $value) {
             $this->set($key, $value, $ttl);
@@ -101,16 +139,16 @@ class File implements CacheInterface
         return true;
     }
 
-    public function deleteMultiple(array $keys)
+    public function deleteMultiple($keys)
     {
-        foreach ($keys as $key) {
+        foreach ($keys as $key => $value) {
             $this->delete($key);
         }
 
         return true;
     }
 
-    public function has(string $key)
+    public function has($key)
     {
         $path = $this->config['path'] . md5($key) . $this->config['ext'];
         if (!is_file($path)) {
@@ -132,25 +170,4 @@ class File implements CacheInterface
         return true;
     }
 
-    public function connect()
-    {
-        if (!isset($this->config['path'])) {
-            throw new Exception("Cache Config.Path not find");
-        }
-
-        !is_dir($this->config['path']) ?: mkdir($this->config['path'], 0755, true);
-    }
-
-    /**
-     * 覆盖配置信息
-     * @date   2020-01-07T11:13:12+0800
-     * @author ChenMingjiang
-     * @param  array                    $config [description]
-     */
-    public function setConfig($config = [])
-    {
-        if ($config) {
-            $this->config = array_merge($this->config, $config);
-        }
-    }
 }
