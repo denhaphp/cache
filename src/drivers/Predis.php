@@ -19,7 +19,7 @@ class Predis implements CacheInterface
         'password'  => '',
         'port'      => 6379,
         'timeout'   => '',
-        'database ' => false,
+        'database ' => 3000,
         'ttl'       => 3600,
     ];
 
@@ -27,6 +27,11 @@ class Predis implements CacheInterface
     {
         $this->setConfig($config);
         $this->connect();
+    }
+
+    public static function getConfigOptions()
+    {
+        return ['host', 'password', 'port', 'timeout', 'database', 'ttl'];
     }
 
     /**
@@ -65,11 +70,6 @@ class Predis implements CacheInterface
 
         return true;
 
-    }
-
-    public static function getConfigOptions()
-    {
-        return ['host', 'password', 'port', 'timeout', 'database', 'ttl'];
     }
 
     public function get($key, $default = null)

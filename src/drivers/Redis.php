@@ -1,7 +1,7 @@
 <?php
 declare (strict_types = 1);
 //------------------------
-//· 文件缓存类
+//· Redis缓存类
 //-------------------------
 namespace denha\cache\drivers;
 
@@ -27,6 +27,11 @@ class Redis implements CacheInterface
     {
         $this->setConfig($config);
         $this->connect();
+    }
+
+    public static function getConfigOptions()
+    {
+        return ['host', 'password', 'port', 'timeout', 'database', 'ttl'];
     }
 
     /**
@@ -71,11 +76,6 @@ class Redis implements CacheInterface
 
         return true;
 
-    }
-
-    public static function getConfigOptions()
-    {
-        return ['host', 'password', 'port', 'timeout', 'database', 'ttl'];
     }
 
     public function get($key, $default = null)

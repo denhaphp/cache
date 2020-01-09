@@ -22,6 +22,11 @@ class File implements CacheInterface
         $this->connect();
     }
 
+    public static function getConfigOptions()
+    {
+        return ['ext', 'ttl', 'path'];
+    }
+
     public function connect()
     {
         if (!isset($this->config['path'])) {
@@ -44,11 +49,6 @@ class File implements CacheInterface
         }
 
         return $this;
-    }
-
-    public static function getConfigOptions()
-    {
-        return ['ext', 'ttl', 'path'];
     }
 
     public function get($key, $default = null)
@@ -78,7 +78,7 @@ class File implements CacheInterface
 
         if ($ttl > 0) {
             $ttl = time() + $ttl;
-        } elseif ($ttl <= 0) {
+        } elseif ($ttl <= 0 && $ttl !== null) {
             $ttl = 0;
         } else {
             $ttl = $this->config['ttl'] > 0 ? time() + $this->config['ttl'] : 0;
