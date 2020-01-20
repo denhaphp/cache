@@ -60,7 +60,7 @@ class File implements CacheInterface
             list($value, $ttl) = !empty($data) ? explode(':::', $data) : [$default, 0];
 
             // 过期删除
-            if ($ttl && $ttl < TIME) {
+            if ($ttl && $ttl < time()) {
                 $this->delete($key);
                 $value = $default;
             } else {
@@ -162,7 +162,8 @@ class File implements CacheInterface
         }
 
         list($value, $ttl) = explode(':::', $data);
-        if ($ttl && $ttl > TIME) {
+
+        if ($ttl && $ttl < time()) {
             $this->delete($key);
             return false;
         }
