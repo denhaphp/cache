@@ -86,7 +86,7 @@ class File implements CacheInterface
 
         $path = $this->config['path'] . md5($key) . $this->config['ext'];
 
-        $content = json_encode($value) . ':::' . $ttl;
+        $content = json_encode($value, JSON_UNESCAPED_UNICODE) . ':::' . $ttl;
         file_put_contents($path, $content);
 
         return true;
