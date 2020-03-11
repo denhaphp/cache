@@ -19,7 +19,7 @@ class Redis implements CacheInterface
         'password'  => '',
         'port'      => 6379,
         'timeout'   => '',
-        'database ' => false,
+        'database'  => false,
         'ttl'       => 3600,
     ];
 
@@ -82,13 +82,14 @@ class Redis implements CacheInterface
     {
         $value = $this->instance->get($key);
 
-        return $value == false ? $default : $value;
+        return $value == false ? $default : json_decode($value, true);
     }
 
     public function set($key, $value, $ttl = null)
     {
 
-        $ttl = $ttl > 0 ? $ttl : $this->config['ttl'];
+        $ttl   = $ttl > 0 ? $ttl : $this->config['ttl'];
+        $value = json_encode($value, JSON_UNESCAPED_UNICODE);
 
         if ($ttl > 0) {
             return $this->instance->Setex($key, $ttl, $value);
