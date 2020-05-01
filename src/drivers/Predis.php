@@ -76,7 +76,7 @@ class Predis implements CacheInterface
     {
         $value = $this->instance->get($key);
 
-        return $value == false ? $default : json_decode($value, true);
+        return $value === false ? $default : json_decode($value, true);
     }
 
     public function set($key, $value, $ttl = null)
