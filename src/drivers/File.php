@@ -56,8 +56,8 @@ class File implements CacheInterface
         $path = $this->config['path'] . md5($key) . $this->config['ext'];
 
         if (is_file($path)) {
-            $data              = file_get_contents($path);
-            list($value, $ttl) = !empty($data) ? explode(':::', $data) : [$default, 0];
+            $data                        = file_get_contents($path);
+            list($value, $ttl, $thisKey) = !empty($data) ? explode(':::', $data) : [$default, 0, $key];
 
             // 过期删除
             if ($ttl && $ttl < time()) {
@@ -86,7 +86,7 @@ class File implements CacheInterface
 
         $path = $this->config['path'] . md5($key) . $this->config['ext'];
 
-        $content = json_encode($value, JSON_UNESCAPED_UNICODE) . ':::' . $ttl;
+        $content = json_encode($value, JSON_UNESCAPED_UNICODE) . ':::' . $ttl . ':::' . $key;
         file_put_contents($path, $content);
 
         return true;
