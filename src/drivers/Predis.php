@@ -5,11 +5,12 @@ declare (strict_types = 1);
 //-------------------------
 namespace denha\cache\drivers;
 
+use denha\cache\CacheInterfaceUp;
 use Predis\Connection\ConnectionException as PredisConnectionException;
 use Psr\SimpleCache\CacheInterface;
 use \Exception;
 
-class Predis implements CacheInterface
+class Predis implements CacheInterface, CacheInterfaceUp
 {
 
     public $instance;
@@ -72,6 +73,13 @@ class Predis implements CacheInterface
 
     }
 
+    public function close()
+    {
+        $this->instance = null;
+
+        return $this;
+    }
+
     public function get($key, $default = null)
     {
         $value = $this->instance->get($key);
@@ -127,7 +135,7 @@ class Predis implements CacheInterface
     public function deleteMultiple($keys)
     {
         foreach ($keys as $key => $value) {
-            $this->delete($key);
+            $this->del($key);
         }
 
         return true;
@@ -136,5 +144,10 @@ class Predis implements CacheInterface
     public function has($key)
     {
         return $this->instance->exists($key);
+    }
+
+    public function __call($method, $params)
+    {
+        return $this->instance->$method(...$params);
     }
 }

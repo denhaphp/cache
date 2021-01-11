@@ -5,31 +5,31 @@ declare (strict_types = 1);
 //-------------------------
 namespace denha\cache\drivers;
 
+use denha\cache\CacheInterfaceUp;
 use Psr\SimpleCache\CacheInterface;
 use Redis as RedisClient;
 use \Exception;
 
-class Redis implements CacheInterface
+class Redis implements CacheInterface, CacheInterfaceUp
 {
 
     public $instance;
 
     private $config = [
-        'host'      => '127.0.0.1',
-        'password'  => '',
-        'port'      => 6379,
-        'timeout'   => '',
-        'database'  => false,
-        'ttl'       => 3600,
+        'host'     => '127.0.0.1',
+        'password' => '',
+        'port'     => 6379,
+        'timeout'  => '',
+        'database' => false,
+        'ttl'      => 3600,
     ];
 
     public function __construct($config = [])
     {
-        $this->setConfig($config);
-        $this->connect();
+        $this->setConfig($config)->connect();
     }
 
-    public static function getConfigOptions()
+    public function getConfigOptions()
     {
         return ['host', 'password', 'port', 'timeout', 'database', 'ttl'];
     }
@@ -76,6 +76,13 @@ class Redis implements CacheInterface
 
         return true;
 
+    }
+
+    public function close()
+    {
+        $this->instance = null;
+
+        return $this;
     }
 
     public function get($key, $default = null)
@@ -133,7 +140,7 @@ class Redis implements CacheInterface
     public function deleteMultiple($keys)
     {
         foreach ($keys as $key => $value) {
-            $this->delete($key);
+            $this->del($key);
         }
 
         return true;
@@ -142,5 +149,10 @@ class Redis implements CacheInterface
     public function has($key)
     {
         return $this->instance->exists($key);
+    }
+
+    public function __call($method, $params)
+    {
+        return $this->instance->$method(...$params);
     }
 }

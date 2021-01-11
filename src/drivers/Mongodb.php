@@ -5,6 +5,7 @@ declare (strict_types = 1);
 //-------------------------
 namespace denha\cache\drivers;
 
+use denha\cache\CacheInterfaceUp;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Command;
@@ -15,7 +16,7 @@ use MongoDB\Driver\WriteConcern;
 use Psr\SimpleCache\CacheInterface;
 use \Exception;
 
-class Mongodb implements CacheInterface
+class Mongodb implements CacheInterface, CacheInterfaceUp
 {
 
     public $instance;
@@ -83,6 +84,13 @@ class Mongodb implements CacheInterface
 
         return true;
 
+    }
+
+    public function close()
+    {
+        $this->instance = null;
+
+        return $this;
     }
 
     /** 检测索引 */
@@ -257,5 +265,10 @@ class Mongodb implements CacheInterface
         $rows  = $this->instance->executeQuery($this->config['database'] . '.' . $this->config['collection'], $query)->toArray();
 
         return isset($rows[0]) ? true : false;
+    }
+
+    public function __call($method, $params)
+    {
+        return $this->instance->$method(...$params);
     }
 }

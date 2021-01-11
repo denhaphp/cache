@@ -5,15 +5,18 @@ declare (strict_types = 1);
 //-------------------------
 namespace denha\cache\drivers;
 
+use denha\cache\CacheInterfaceUp;
 use Psr\SimpleCache\CacheInterface;
 use \Exception;
 
-class File implements CacheInterface
+class File implements CacheInterface, CacheInterfaceUp
 {
     private $config = [
-        'ext'  => '.txt',
-        'ttl'  => 3600,
-        'path' => DATA_CACHE_PATH,
+        'ext'         => '.txt',
+        'ttl'         => 3600,
+        'path'        => DATA_CACHE_PATH,
+        'probability' => 1, // 1 或者 0
+        'diviso'      => 1000, // 回收机制的概率分母
     ];
 
     public function __construct($config = [])
@@ -22,9 +25,9 @@ class File implements CacheInterface
         $this->connect();
     }
 
-    public static function getConfigOptions()
+    public function getConfigOptions()
     {
-        return ['ext', 'ttl', 'path'];
+        return ['ext', 'ttl', 'path', 'probability', 'diviso'];
     }
 
     public function connect()
@@ -34,6 +37,11 @@ class File implements CacheInterface
         }
 
         is_dir($this->config['path']) ?: mkdir($this->config['path'], 0755, true);
+    }
+
+    public function close()
+    {
+
     }
 
     /**
@@ -53,6 +61,10 @@ class File implements CacheInterface
 
     public function get($key, $default = null)
     {
+
+        // 触发回收机制
+        $this->recover();
+
         $path = $this->config['path'] . md5($key) . $this->config['ext'];
 
         if (is_file($path)) {
@@ -169,6 +181,32 @@ class File implements CacheInterface
         }
 
         return true;
+    }
+
+    public function recover()
+    {
+        if (!$this->config['probability']) {
+            return false;
+        }
+
+        if (rand(1, (int) $this->config['diviso']) !== 1) {
+            return false;
+        }
+
+        $lists = scandir($this->config['path']);
+
+        foreach ($lists as $path) {
+            if ($path != "." && $path != ".." && is_file($this->config['path'] . $path)) {
+                $data = file_get_contents($this->config['path'] . $path);
+
+                list($value, $ttl, $thisKey) = !empty($data) ? explode(':::', $data) : [$default, 0, $key];
+
+                // 过期删除
+                if ($ttl && $ttl < time()) {
+                    unlink($this->config['path'] . $path);
+                }
+            }
+        }
     }
 
 }
