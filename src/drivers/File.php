@@ -41,7 +41,7 @@ class File implements CacheInterface, CacheInterfaceUp
 
     public function close()
     {
-
+        
     }
 
     /**
