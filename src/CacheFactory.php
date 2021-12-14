@@ -21,8 +21,6 @@ class CacheFactory
         'Predis'  => \denha\cache\drivers\Predis::class,
         /** Reids缓存 */
         'Redis'   => \denha\cache\drivers\Redis::class,
-        /** Cookie缓存 */
-        'Cookie'   => \denha\cache\drivers\Cookie::class,
     ];
 
     public static function message($config = [])

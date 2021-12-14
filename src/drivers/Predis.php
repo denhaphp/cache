@@ -35,6 +35,10 @@ class Predis implements CacheInterface, CacheInterfaceUp
         return ['host', 'password', 'port', 'timeout', 'database', 'ttl'];
     }
 
+    public function getType(){
+        return ltrim(__CLASS__,"denha\\cache\\drivers\\"); 
+    }
+
     /**
      * 覆盖配置信息
      * @date   2020-01-07T11:13:12+0800

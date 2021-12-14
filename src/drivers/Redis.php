@@ -34,6 +34,9 @@ class Redis implements CacheInterface, CacheInterfaceUp
         return ['host', 'password', 'port', 'timeout', 'database', 'ttl'];
     }
 
+    public function getType(){
+        return ltrim(__CLASS__,"denha\\cache\\drivers\\"); 
+    }
     /**
      * 覆盖配置信息
      * @date   2020-01-07T11:13:12+0800
@@ -58,7 +61,11 @@ class Redis implements CacheInterface, CacheInterfaceUp
 
         $this->instance = $this->instance ?: new RedisClient();
 
-        $isConnected = $this->instance->connect($this->config['host'], (int) $this->config['port'], (int) $this->config['timeout']);
+        try {
+            $isConnected = $this->instance->connect($this->config['host'], (int) $this->config['port'], (int) $this->config['timeout']);
+        } catch (\Throwable $th) {
+            throw new Exception("Redis Server Not Connects");
+        }
 
         if (!$isConnected) {
             throw new Exception("Redis Server Not Connect");
@@ -95,7 +102,12 @@ class Redis implements CacheInterface, CacheInterfaceUp
     public function set($key, $value, $ttl = null)
     {
 
-        $ttl   = $ttl > 0 ? $ttl : $this->config['ttl'];
+        if($ttl === null || $ttl < 0){
+            $ttl = $this->config['ttl'];
+        }else if($ttl === 0){
+            $ttl = 0;
+        }
+
         $value = json_encode($value, JSON_UNESCAPED_UNICODE);
 
         if ($ttl > 0) {
@@ -122,11 +134,15 @@ class Redis implements CacheInterface, CacheInterfaceUp
         return $this->instance->mget($keys);
     }
 
-    public function setMultiple($values, $ttl = 0)
+    public function setMultiple($values, $ttl = null)
     {
         $this->instance->mset($values);
 
-        $ttl = $ttl > 0 ? $ttl : $this->config['ttl'];
+        if($ttl === null || $ttl < 0){
+            $ttl = $this->config['ttl'];
+        }else if($ttl === 0){
+            $ttl = 0;
+        }
 
         if ($ttl > 0) {
             foreach ($values as $key => $value) {

@@ -14,4 +14,6 @@ interface CacheInterfaceUp
     public function connect();
     // 关闭连接
     public function close();
+    // 获取类型
+    public function getType();
 }

@@ -30,6 +30,10 @@ class File implements CacheInterface, CacheInterfaceUp
         return ['ext', 'ttl', 'path', 'probability', 'diviso'];
     }
 
+    public function getType(){
+        return ltrim(__CLASS__,"denha\\cache\\drivers\\"); 
+    }
+
     public function connect()
     {
         if (!isset($this->config['path'])) {
@@ -41,7 +45,7 @@ class File implements CacheInterface, CacheInterfaceUp
 
     public function close()
     {
-        
+        return $this;
     }
 
     /**

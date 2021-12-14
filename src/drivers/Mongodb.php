@@ -45,6 +45,9 @@ class Mongodb implements CacheInterface, CacheInterfaceUp
         return ['host', 'username', 'password', 'port', 'timeout', 'database', 'collection', 'ttl'];
     }
 
+    public function getType(){
+        return ltrim(__CLASS__,"denha\\cache\\drivers\\"); 
+    }
     /**
      * 覆盖配置信息
      * @date   2020-01-07T11:13:12+0800
